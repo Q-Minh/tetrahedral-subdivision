@@ -1001,17 +1001,17 @@ std::pair<std::byte, std::array<Eigen::Vector3d, 4u>> get_face_intersections(
         if (f2_intersected)
         {
             start_line_mask |= std::byte{0b00000010};
-            face_intersections[1] = f1_intersection;
+            face_intersections[1] = f2_intersection;
         }
         if (f3_intersected)
         {
             start_line_mask |= std::byte{0b00000100};
-            face_intersections[2] = f1_intersection;
+            face_intersections[2] = f3_intersection;
         }
         if (f4_intersected)
         {
             start_line_mask |= std::byte{0b00001000};
-            face_intersections[3] = f1_intersection;
+            face_intersections[3] = f4_intersection;
         }
     }
 

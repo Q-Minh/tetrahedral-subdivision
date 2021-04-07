@@ -40,7 +40,7 @@ int main(int argc, char** argv)
         viewer.data().show_labels = true;
         viewer.data().point_size  = 10.f;
         viewer.data().set_mesh(V, F);
-        viewer.core().align_camera_center(V);
+        viewer.data().set_face_based(true);
     };
 
     Eigen::RowVector3d const red{1., 0., 0.};
@@ -335,6 +335,8 @@ int main(int argc, char** argv)
                 {start_line_segment_p1, start_line_segment_p2},
                 {end_line_segment_p1, end_line_segment_p2});
 
+            std::cout << "Vertices:\n" << V << "\n";
+
             std::cout << "Subdivided tetrahedral mesh:\n" << T << "\n";
 
             igl::boundary_facets(T, F);
@@ -344,7 +346,7 @@ int main(int argc, char** argv)
 
             viewer.data().clear();
             viewer.data().set_mesh(V, F);
-            viewer.core().align_camera_center(V);
+            viewer.data().set_face_based(true);
             viewer.data().show_lines = true;
         }
         if (ImGui::Button("Reset", ImVec2((w - p) / 2.f, 0.f)))
