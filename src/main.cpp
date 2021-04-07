@@ -1,6 +1,7 @@
-#include "intersection_tests.hpp"
+#include "cut_tetrahedron.hpp"
 
 #include <Eigen/Geometry>
+#include <igl/barycenter.h>
 #include <igl/boundary_facets.h>
 #include <igl/opengl/glfw/Viewer.h>
 #include <igl/opengl/glfw/imgui/ImGuiHelpers.h>
@@ -18,22 +19,30 @@ int main(int argc, char** argv)
     Eigen::MatrixXi T(1u, 4u);
     Eigen::MatrixXi F(4u, 3u);
 
-    // clang-format off
-	V.row(0u) = Eigen::RowVector3d{0., 0., -1.};
-    V.row(1u) = Eigen::RowVector3d{1., 0.,  1.};
-    V.row(2u) = Eigen::RowVector3d{2., 0., -1.};
-    V.row(3u) = Eigen::RowVector3d{1., 1.5,  0.};
+    auto const reset_demo = [&]() {
+        V = Eigen::MatrixXd(4u, 3u);
+        T = Eigen::MatrixXi(1u, 4u);
+        F = Eigen::MatrixXi(4u, 3u);
 
-    T.row(0u) = Eigen::RowVector4i{0u, 1u, 2u, 3u};
+        // clang-format off
+	    V.row(0u) = Eigen::RowVector3d{0., 0., -1.};
+        V.row(1u) = Eigen::RowVector3d{1., 0.,  1.};
+        V.row(2u) = Eigen::RowVector3d{2., 0., -1.};
+        V.row(3u) = Eigen::RowVector3d{1., 1.5,  0.};
 
-    igl::boundary_facets(T, F);
-    F = F.rowwise().reverse().eval();
-    // clang-format on
+        T.row(0u) = Eigen::RowVector4i{0u, 1u, 2u, 3u};
 
-    viewer.data().show_labels = true;
-    viewer.data().point_size  = 10.f;
-    viewer.data().set_mesh(V, F);
-    viewer.core().align_camera_center(V);
+        igl::boundary_facets(T, F);
+        F = F.rowwise().reverse().eval();
+        // clang-format on
+
+        viewer.data().clear();
+        viewer.data().show_labels = true;
+        viewer.data().point_size  = 10.f;
+        viewer.data().set_mesh(V, F);
+        viewer.core().align_camera_center(V);
+    };
+
     Eigen::RowVector3d const red{1., 0., 0.};
     Eigen::RowVector3d const green{0., 1., 0.};
     Eigen::RowVector3d const blue{0., 0., 1.};
@@ -56,25 +65,25 @@ int main(int argc, char** argv)
         TF.row(2u) = Eigen::RowVector3i{2u, 0u, 3u};
         TF.row(3u) = Eigen::RowVector3i{0u, 2u, 1u};
 
-        auto const [f1_intersected, f1_intersection] = geometry::triangle_line_intersection(
+        auto const [f1_intersected, f1_intersection] = geometry::triangle_line_intersection_two_way(
             V.row(TF(0, 0)).transpose(),
             V.row(TF(0, 1)).transpose(),
             V.row(TF(0, 2)).transpose(),
             {p, q});
 
-        auto const [f2_intersected, f2_intersection] = geometry::triangle_line_intersection(
+        auto const [f2_intersected, f2_intersection] = geometry::triangle_line_intersection_two_way(
             V.row(TF(1, 0)).transpose(),
             V.row(TF(1, 1)).transpose(),
             V.row(TF(1, 2)).transpose(),
             {p, q});
 
-        auto const [f3_intersected, f3_intersection] = geometry::triangle_line_intersection(
+        auto const [f3_intersected, f3_intersection] = geometry::triangle_line_intersection_two_way(
             V.row(TF(2, 0)).transpose(),
             V.row(TF(2, 1)).transpose(),
             V.row(TF(2, 2)).transpose(),
             {p, q});
 
-        auto const [f4_intersected, f4_intersection] = geometry::triangle_line_intersection(
+        auto const [f4_intersected, f4_intersection] = geometry::triangle_line_intersection_two_way(
             V.row(TF(3, 0)).transpose(),
             V.row(TF(3, 1)).transpose(),
             V.row(TF(3, 2)).transpose(),
@@ -110,17 +119,17 @@ int main(int argc, char** argv)
         auto const& v4 = V.row(T(0, 3));
 
         auto const [e1_intersected, e1_intersection] =
-            geometry::triangle_line_intersection(a, b, c, {v1, v2});
+            geometry::triangle_line_intersection_two_way(a, b, c, {v1, v2});
         auto const [e2_intersected, e2_intersection] =
-            geometry::triangle_line_intersection(a, b, c, {v2, v3});
+            geometry::triangle_line_intersection_two_way(a, b, c, {v2, v3});
         auto const [e3_intersected, e3_intersection] =
-            geometry::triangle_line_intersection(a, b, c, {v3, v1});
+            geometry::triangle_line_intersection_two_way(a, b, c, {v3, v1});
         auto const [e4_intersected, e4_intersection] =
-            geometry::triangle_line_intersection(a, b, c, {v1, v4});
+            geometry::triangle_line_intersection_two_way(a, b, c, {v1, v4});
         auto const [e5_intersected, e5_intersection] =
-            geometry::triangle_line_intersection(a, b, c, {v2, v4});
+            geometry::triangle_line_intersection_two_way(a, b, c, {v2, v4});
         auto const [e6_intersected, e6_intersection] =
-            geometry::triangle_line_intersection(a, b, c, {v3, v4});
+            geometry::triangle_line_intersection_two_way(a, b, c, {v3, v4});
 
         if (e1_intersected)
         {
@@ -147,6 +156,8 @@ int main(int argc, char** argv)
             viewer.data().add_points(e6_intersection.transpose(), red);
         }
     };
+
+    reset_demo();
 
     menu.callback_draw_viewer_window = [&]() {
         viewer.data().clear_edges();
@@ -212,7 +223,7 @@ int main(int argc, char** argv)
             start_roll_pitch_yaw(2) = start_yaw;
 
             ImGui::Text("End Line 3d rotation", "");
-            static float end_roll = 0.f, end_pitch = 0.f, end_yaw = 0.f;
+            static float end_roll = 0.f, end_pitch = 6.3f, end_yaw = 0.f;
             ImGui::SliderFloat("roll##SweptSurfaceEndLine", &end_roll, 0.f, 2.f * 3.14159f, "%.1f");
             ImGui::SliderFloat(
                 "pitch##SweptSurfaceEndLine",
@@ -226,6 +237,8 @@ int main(int argc, char** argv)
             end_roll_pitch_yaw(1) = end_pitch;
             end_roll_pitch_yaw(2) = end_yaw;
         }
+
+        static bool is_cut{false};
 
         // draw the cutting "scalpel"
         Eigen::AngleAxisd const start_roll_angle(
@@ -261,16 +274,8 @@ int main(int argc, char** argv)
         end_line_segment_p1 = start_line_segment_p1;
         end_line_segment_p2 =
             (end_swept_surface_rotation * (start_line_segment_p2.transpose() - translation) +
-             translation)
+                translation)
                 .transpose();
-
-        viewer.data().add_edges(start_line_segment_p1, start_line_segment_p2, red);
-        viewer.data().add_edges(end_line_segment_p1, end_line_segment_p2, red);
-
-        // draw tetrahedron edge intersections with cutting swept surface
-        Eigen::Vector3d const swept_surface_triangle_a{start_line_segment_p1.transpose()};
-        Eigen::Vector3d const swept_surface_triangle_b{start_line_segment_p2.transpose()};
-        Eigen::Vector3d const swept_surface_triangle_c{end_line_segment_p2.transpose()};
 
         // coordinate frame visualization
         viewer.data().add_edges(
@@ -286,38 +291,66 @@ int main(int argc, char** argv)
             0.5 * Eigen::RowVector3d{0., 0., 1.},
             blue);
 
-        viewer.data().add_points(start_line_segment_p1, red);
-        viewer.data().add_points(start_line_segment_p2, red);
-        viewer.data().add_points(end_line_segment_p1, red);
-        viewer.data().add_points(end_line_segment_p2, red);
+        if (!is_cut)
+        {
+            viewer.data().add_edges(start_line_segment_p1, start_line_segment_p2, red);
+            viewer.data().add_edges(end_line_segment_p1, end_line_segment_p2, red);
 
-        display_tet_face_intersections(V, T, start_line_segment_p1, start_line_segment_p2);
-        display_tet_face_intersections(V, T, start_line_segment_p2, start_line_segment_p1);
+            // draw tetrahedron edge intersections with cutting swept surface
+            Eigen::Vector3d const swept_surface_triangle_a{start_line_segment_p1.transpose()};
+            Eigen::Vector3d const swept_surface_triangle_b{start_line_segment_p2.transpose()};
+            Eigen::Vector3d const swept_surface_triangle_c{end_line_segment_p2.transpose()};
 
-        display_tet_face_intersections(V, T, end_line_segment_p1, end_line_segment_p2);
-        display_tet_face_intersections(V, T, end_line_segment_p2, end_line_segment_p1);
+            viewer.data().add_points(start_line_segment_p1, red);
+            viewer.data().add_points(start_line_segment_p2, red);
+            viewer.data().add_points(end_line_segment_p1, red);
+            viewer.data().add_points(end_line_segment_p2, red);
 
-        diplay_tet_edge_intersections(
-            V,
-            T,
-            swept_surface_triangle_a,
-            swept_surface_triangle_b,
-            swept_surface_triangle_c);
-        diplay_tet_edge_intersections(
-            V,
-            T,
-            swept_surface_triangle_b,
-            swept_surface_triangle_a,
-            swept_surface_triangle_c);
+            display_tet_face_intersections(V, T, start_line_segment_p1, start_line_segment_p2);
+            display_tet_face_intersections(V, T, end_line_segment_p1, end_line_segment_p2);
 
-        viewer.data().add_label(
-            start_line_segment_p1,
-            get_coordinate_string(start_line_segment_p1));
-        viewer.data().add_label(
-            start_line_segment_p2,
-            get_coordinate_string(start_line_segment_p2));
-        viewer.data().add_label(end_line_segment_p1, get_coordinate_string(end_line_segment_p1));
-        viewer.data().add_label(end_line_segment_p2, get_coordinate_string(end_line_segment_p2));
+            diplay_tet_edge_intersections(
+                V,
+                T,
+                swept_surface_triangle_a,
+                swept_surface_triangle_b,
+                swept_surface_triangle_c);
+
+            viewer.data().add_label(
+                start_line_segment_p1,
+                get_coordinate_string(start_line_segment_p1));
+            viewer.data().add_label(
+                start_line_segment_p2,
+                get_coordinate_string(start_line_segment_p2));
+            viewer.data().add_label(end_line_segment_p1, get_coordinate_string(end_line_segment_p1));
+            viewer.data().add_label(end_line_segment_p2, get_coordinate_string(end_line_segment_p2));
+        }
+
+        if (ImGui::Button("Cut", ImVec2((w - p) / 2.f, 0.f)))
+        {
+            geometry::cut_tetrahedron(
+                V,
+                T,
+                0,
+                {start_line_segment_p1, start_line_segment_p2},
+                {end_line_segment_p1, end_line_segment_p2});
+
+            std::cout << "Subdivided tetrahedral mesh:\n" << T << "\n";
+
+            igl::boundary_facets(T, F);
+            F = F.rowwise().reverse().eval();
+
+            std::cout << "Subdivided tetrahedral boundary facets:\n" << F << "\n";
+
+            viewer.data().clear();
+            viewer.data().set_mesh(V, F);
+            viewer.core().align_camera_center(V);
+            viewer.data().show_lines = true;
+        }
+        if (ImGui::Button("Reset", ImVec2((w - p) / 2.f, 0.f)))
+        {
+            reset_demo();
+        }
 
         ImGui::End();
     };

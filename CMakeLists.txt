@@ -45,6 +45,7 @@ PRIVATE
 
     # header files
 
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/cut_tetrahedron.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/intersection_tests.hpp
 )
 

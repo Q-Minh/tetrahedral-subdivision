@@ -53,12 +53,27 @@ std::pair<bool, Eigen::Vector3d> triangle_line_intersection(
 
     double const ood = 1. / d;
     t *= ood;
-    //v *= ood;
-    //w *= ood;
-    //double const u = 1. - v - w;
+    // v *= ood;
+    // w *= ood;
+    // double const u = 1. - v - w;
 
     Eigen::Vector3d const intersection = (1. - t) * p + t * q;
     return {true, intersection};
+}
+
+std::pair<bool, Eigen::Vector3d> triangle_line_intersection_two_way(
+    Eigen::Vector3d const& a,
+    Eigen::Vector3d const& b,
+    Eigen::Vector3d const& c,
+    std::pair<Eigen::Vector3d, Eigen::Vector3d> const& line)
+{
+    auto const [has_intersection_1, intersection_1] = triangle_line_intersection(a, b, c, line);
+    auto const [has_intersection_2, intersection_2] = triangle_line_intersection(b, a, c, line);
+
+    if (has_intersection_1)
+        return {has_intersection_1, intersection_1};
+
+    return {has_intersection_2, intersection_2};
 }
 
 } // namespace geometry
