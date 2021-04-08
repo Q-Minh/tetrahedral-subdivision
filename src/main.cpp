@@ -299,14 +299,9 @@ int main(int argc, char** argv)
                 {start_line_segment_p1, start_line_segment_p2},
                 {end_line_segment_p1, end_line_segment_p2});
 
-            std::cout << "Vertices:\n" << V << "\n";
-
-            std::cout << "Subdivided tetrahedral mesh:\n" << T << "\n";
-
             igl::boundary_facets(T, F);
             F = F.rowwise().reverse().eval();
 
-            std::cout << "Subdivided tetrahedral boundary facets:\n" << F << "\n";
             is_cut = true;
 
             viewer.data().clear();
