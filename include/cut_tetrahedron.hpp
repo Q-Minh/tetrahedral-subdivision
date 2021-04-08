@@ -444,20 +444,22 @@ class tetrahedron_mesh_cutter_t
         std::byte constexpr case_5_345{0b00011100};
         std::byte constexpr case_5_356{0b00110100};
 
+        bool constexpr symmetry{true};
         if (edge_intersection_mask == case_5_124)
         {
-            auto const& pe1 = edge_intersection_points[e1];
-            auto const& pe2 = edge_intersection_points[e2];
-            auto const& pe3 = edge_intersection_points[e4];
-            auto const& pf1 = face_intersection_points[f3];
-            auto const& pf2 = face_intersection_points[f2];
+            auto const& pe1 = edge_intersection_points[e4];
+            auto const& pe2 = edge_intersection_points[e1];
+            auto const& pe3 = edge_intersection_points[e2];
+            auto const& pf1 = face_intersection_points[f2];
+            auto const& pf2 = face_intersection_points[f3];
             subdivide_mesh_for_common_case_5(
                 TV,
                 TT,
                 tetrahedron,
-                {v3, v1, v4, v2},
+                {v4, v2, v3, v1},
                 {pe1, pe2, pe3},
-                {pf1, pf2});
+                {pf1, pf2},
+                symmetry);
             return true;
         }
         if (edge_intersection_mask == case_5_126)
@@ -478,9 +480,9 @@ class tetrahedron_mesh_cutter_t
         }
         if (edge_intersection_mask == case_5_135)
         {
-            auto const& pe1 = edge_intersection_points[e1];
-            auto const& pe2 = edge_intersection_points[e3];
-            auto const& pe3 = edge_intersection_points[e5];
+            auto const& pe1 = edge_intersection_points[e5];
+            auto const& pe2 = edge_intersection_points[e1];
+            auto const& pe3 = edge_intersection_points[e3];
             auto const& pf1 = face_intersection_points[f3];
             auto const& pf2 = face_intersection_points[f2];
             subdivide_mesh_for_common_case_5(
@@ -494,9 +496,9 @@ class tetrahedron_mesh_cutter_t
         }
         if (edge_intersection_mask == case_5_136)
         {
-            auto const& pe1 = edge_intersection_points[e1];
+            auto const& pe1 = edge_intersection_points[e6];
             auto const& pe2 = edge_intersection_points[e3];
-            auto const& pe3 = edge_intersection_points[e6];
+            auto const& pe3 = edge_intersection_points[e1];
             auto const& pf1 = face_intersection_points[f1];
             auto const& pf2 = face_intersection_points[f2];
             subdivide_mesh_for_common_case_5(
@@ -505,7 +507,8 @@ class tetrahedron_mesh_cutter_t
                 tetrahedron,
                 {v4, v1, v2, v3},
                 {pe1, pe2, pe3},
-                {pf1, pf2});
+                {pf1, pf2},
+                symmetry);
             return true;
         }
         if (edge_intersection_mask == case_5_146)
@@ -526,9 +529,9 @@ class tetrahedron_mesh_cutter_t
         }
         if (edge_intersection_mask == case_5_156)
         {
-            auto const& pe1 = edge_intersection_points[e1];
+            auto const& pe1 = edge_intersection_points[e6];
             auto const& pe2 = edge_intersection_points[e5];
-            auto const& pe3 = edge_intersection_points[e6];
+            auto const& pe3 = edge_intersection_points[e1];
             auto const& pf1 = face_intersection_points[f4];
             auto const& pf2 = face_intersection_points[f3];
             subdivide_mesh_for_common_case_5(
@@ -537,7 +540,8 @@ class tetrahedron_mesh_cutter_t
                 tetrahedron,
                 {v3, v2, v1, v4},
                 {pe1, pe2, pe3},
-                {pf1, pf2});
+                {pf1, pf2},
+                symmetry);
             return true;
         }
         if (edge_intersection_mask == case_5_234)
@@ -558,8 +562,8 @@ class tetrahedron_mesh_cutter_t
         }
         if (edge_intersection_mask == case_5_235)
         {
-            auto const& pe1 = edge_intersection_points[e2];
-            auto const& pe2 = edge_intersection_points[e3];
+            auto const& pe1 = edge_intersection_points[e3];
+            auto const& pe2 = edge_intersection_points[e2];
             auto const& pe3 = edge_intersection_points[e5];
             auto const& pf1 = face_intersection_points[f1];
             auto const& pf2 = face_intersection_points[f3];
@@ -569,14 +573,15 @@ class tetrahedron_mesh_cutter_t
                 tetrahedron,
                 {v1, v2, v4, v3},
                 {pe1, pe2, pe3},
-                {pf1, pf2});
+                {pf1, pf2},
+                symmetry);
             return true;
         }
         if (edge_intersection_mask == case_5_245)
         {
-            auto const& pe1 = edge_intersection_points[e2];
-            auto const& pe2 = edge_intersection_points[e4];
-            auto const& pe3 = edge_intersection_points[e5];
+            auto const& pe1 = edge_intersection_points[e4];
+            auto const& pe2 = edge_intersection_points[e5];
+            auto const& pe3 = edge_intersection_points[e2];
             auto const& pf1 = face_intersection_points[f4];
             auto const& pf2 = face_intersection_points[f3];
             subdivide_mesh_for_common_case_5(
@@ -590,9 +595,9 @@ class tetrahedron_mesh_cutter_t
         }
         if (edge_intersection_mask == case_5_246)
         {
-            auto const& pe1 = edge_intersection_points[e2];
-            auto const& pe2 = edge_intersection_points[e4];
-            auto const& pe3 = edge_intersection_points[e6];
+            auto const& pe1 = edge_intersection_points[e4];
+            auto const& pe2 = edge_intersection_points[e6];
+            auto const& pe3 = edge_intersection_points[e2];
             auto const& pf1 = face_intersection_points[f4];
             auto const& pf2 = face_intersection_points[f1];
             subdivide_mesh_for_common_case_5(
@@ -601,14 +606,15 @@ class tetrahedron_mesh_cutter_t
                 tetrahedron,
                 {v1, v3, v2, v4},
                 {pe1, pe2, pe3},
-                {pf1, pf2});
+                {pf1, pf2},
+                symmetry);
             return true;
         }
         if (edge_intersection_mask == case_5_345)
         {
-            auto const& pe1 = edge_intersection_points[e3];
+            auto const& pe1 = edge_intersection_points[e5];
             auto const& pe2 = edge_intersection_points[e4];
-            auto const& pe3 = edge_intersection_points[e5];
+            auto const& pe3 = edge_intersection_points[e3];
             auto const& pf1 = face_intersection_points[f4];
             auto const& pf2 = face_intersection_points[f2];
             subdivide_mesh_for_common_case_5(
@@ -617,14 +623,15 @@ class tetrahedron_mesh_cutter_t
                 tetrahedron,
                 {v2, v1, v3, v4},
                 {pe1, pe2, pe3},
-                {pf1, pf2});
+                {pf1, pf2},
+                symmetry);
             return true;
         }
         if (edge_intersection_mask == case_5_356)
         {
-            auto const& pe1 = edge_intersection_points[e3];
-            auto const& pe2 = edge_intersection_points[e5];
-            auto const& pe3 = edge_intersection_points[e6];
+            auto const& pe1 = edge_intersection_points[e5];
+            auto const& pe2 = edge_intersection_points[e6];
+            auto const& pe3 = edge_intersection_points[e3];
             auto const& pf1 = face_intersection_points[f4];
             auto const& pf2 = face_intersection_points[f1];
             subdivide_mesh_for_common_case_5(
@@ -808,7 +815,8 @@ class tetrahedron_mesh_cutter_t
         int tetrahedron,
         std::array<int, 4u> const& vertex_ordering,
         std::array<Eigen::Vector3d, 3u> const& edge_intersection_points,
-        std::array<Eigen::Vector3d, 2u> const& face_intersection_points)
+        std::array<Eigen::Vector3d, 2u> const& face_intersection_points,
+        bool symmetry = false)
     {
         int const v1 = TT.row(tetrahedron)(vertex_ordering[0]);
         int const v2 = TT.row(tetrahedron)(vertex_ordering[1]);
@@ -841,15 +849,30 @@ class tetrahedron_mesh_cutter_t
         int const t9                        = TT.rows() + 7;
 
         TT.conservativeResize(TT.rows() + (new_tetrahedron_count - 1), Eigen::NoChange);
-        TT.row(t1) = Eigen::RowVector4i{v9, v6, v5, v1};
-        TT.row(t2) = Eigen::RowVector4i{v9, v8, v6, v1};
-        TT.row(t3) = Eigen::RowVector4i{v1, v8, v3, v9};
-        TT.row(t4) = Eigen::RowVector4i{v8, v7, v6, v1};
-        TT.row(t5) = Eigen::RowVector4i{v2, v6, v7, v1};
-        TT.row(t6) = Eigen::RowVector4i{v5, v6, v9, v4};
-        TT.row(t7) = Eigen::RowVector4i{v9, v6, v3, v4};
-        TT.row(t8) = Eigen::RowVector4i{v9, v8, v3, v6};
-        TT.row(t9) = Eigen::RowVector4i{v8, v7, v3, v6};
+        if (symmetry)
+        {
+            TT.row(t1) = Eigen::RowVector4i{v9, v5, v6, v1};
+            TT.row(t2) = Eigen::RowVector4i{v9, v6, v8, v1};
+            TT.row(t3) = Eigen::RowVector4i{v1, v3, v8, v9};
+            TT.row(t4) = Eigen::RowVector4i{v8, v6, v7, v1};
+            TT.row(t5) = Eigen::RowVector4i{v2, v7, v6, v1};
+            TT.row(t6) = Eigen::RowVector4i{v5, v9, v6, v4};
+            TT.row(t7) = Eigen::RowVector4i{v9, v3, v6, v4};
+            TT.row(t8) = Eigen::RowVector4i{v9, v3, v8, v6};
+            TT.row(t9) = Eigen::RowVector4i{v8, v3, v7, v6};
+        }
+        else
+        {
+            TT.row(t1) = Eigen::RowVector4i{v9, v6, v5, v1};
+            TT.row(t2) = Eigen::RowVector4i{v9, v8, v6, v1};
+            TT.row(t3) = Eigen::RowVector4i{v1, v8, v3, v9};
+            TT.row(t4) = Eigen::RowVector4i{v8, v7, v6, v1};
+            TT.row(t5) = Eigen::RowVector4i{v2, v6, v7, v1};
+            TT.row(t6) = Eigen::RowVector4i{v5, v6, v9, v4};
+            TT.row(t7) = Eigen::RowVector4i{v9, v6, v3, v4};
+            TT.row(t8) = Eigen::RowVector4i{v9, v8, v3, v6};
+            TT.row(t9) = Eigen::RowVector4i{v8, v7, v3, v6};
+        }
     }
 };
 

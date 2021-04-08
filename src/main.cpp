@@ -1,11 +1,13 @@
 #include "cut_tetrahedron.hpp"
 
 #include <Eigen/Geometry>
+#include <glfw/glfw3.h>
 #include <igl/barycenter.h>
 #include <igl/boundary_facets.h>
 #include <igl/opengl/glfw/Viewer.h>
 #include <igl/opengl/glfw/imgui/ImGuiHelpers.h>
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
+#include <igl/trackball.h>
 #include <iomanip>
 #include <sstream>
 
@@ -177,105 +179,56 @@ int main(int argc, char** argv)
         static Eigen::RowVector3d end_line_segment_p1, end_line_segment_p2;
         static Eigen::Vector3d start_roll_pitch_yaw{0., 0., 0.};
         static Eigen::Vector3d end_roll_pitch_yaw{0., 0., 0.};
-        double t = 1.;
+
+        Eigen::MatrixXd CuttingTriangleV(3u, 3u);
+        CuttingTriangleV.row(0u)      = Eigen::RowVector3d{0., 0., 0.5};
+        CuttingTriangleV.row(1u)      = Eigen::RowVector3d{0.5, 0., -0.5};
+        CuttingTriangleV.row(2u)      = Eigen::RowVector3d{-0.5, 0., -0.5};
+        Eigen::RowVector3d const mean = CuttingTriangleV.colwise().mean().eval();
+        CuttingTriangleV.rowwise() -= mean;
+
+        Eigen::MatrixXi CuttingTriangleF(1u, 3u);
+        CuttingTriangleF.row(0u) = Eigen::RowVector3i{0, 1, 2};
+
+        Eigen::Matrix3d R = Eigen::Matrix3d::Identity();
+        Eigen::RowVector3d t{0., 0., 0.};
+        Eigen::Matrix3d S = Eigen::Matrix3d::Identity();
+        static float roll = 0.f, pitch = 0.f, yaw = 0.f;
+        static float tx = 0.f, ty = 0.f, tz = 0.f;
+        static float sx = 1.f, sy = 1.f, sz = 1.f;
 
         if (ImGui::CollapsingHeader("Cutting Swept Surface", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            ImGui::Text("Translation", "");
-            static float tx = 0.f, ty = 0.f, tz = 0.f;
-            ImGui::SliderFloat("tx##SweptSurface", &tx, -2.f, 2.f, "%.1f");
-            ImGui::SliderFloat("ty##SweptSurface", &ty, -2.f, 2.f, "%.1f");
-            ImGui::SliderFloat("tz##SweptSurface", &tz, -2.f, 2.f, "%.1f");
+            ImGui::Text("Roll Pitch Yaw of Cutting Triangle");
+            ImGui::SliderFloat("Roll", &roll, 0.f, 2.f * 3.14159f, "%.1f");
+            ImGui::SliderFloat("Pitch", &pitch, 0.f, 2.f * 3.14159f, "%.1f");
+            ImGui::SliderFloat("Yaw", &yaw, 0.f, 2.f * 3.14159f, "%.1f");
 
-            translation(0) = tx;
-            translation(1) = ty;
-            translation(2) = tz;
+            ImGui::Text("Translation of Cutting Triangle");
+            ImGui::SliderFloat("tx", &tx, -5.f, 5.f, "%.1f");
+            ImGui::SliderFloat("ty", &ty, -5.f, 5.f, "%.1f");
+            ImGui::SliderFloat("tz", &tz, -5.f, 5.f, "%.1f");
 
-            ImGui::Text("Line segment length", "");
-            static float length = 1.f;
-            ImGui::SliderFloat("t##SweptSurface", &length, 0.f, 10.f, "%.1f");
-
-            t = length;
-
-            ImGui::Text("Start Line 3d rotation", "");
-            static float start_roll = 0.f, start_pitch = 0.f, start_yaw = 0.f;
-            ImGui::SliderFloat(
-                "roll##SweptSurfaceStartLine",
-                &start_roll,
-                0.f,
-                2.f * 3.14159f,
-                "%.1f");
-            ImGui::SliderFloat(
-                "pitch##SweptSurfaceStartLine",
-                &start_pitch,
-                0.f,
-                2.f * 3.14159f,
-                "%.1f");
-            ImGui::SliderFloat(
-                "yaw##SweptSurfaceStartLine",
-                &start_yaw,
-                0.f,
-                2.f * 3.14159f,
-                "%.1f");
-
-            start_roll_pitch_yaw(0) = start_roll;
-            start_roll_pitch_yaw(1) = start_pitch;
-            start_roll_pitch_yaw(2) = start_yaw;
-
-            ImGui::Text("End Line 3d rotation", "");
-            static float end_roll = 0.f, end_pitch = 6.3f, end_yaw = 0.f;
-            ImGui::SliderFloat("roll##SweptSurfaceEndLine", &end_roll, 0.f, 2.f * 3.14159f, "%.1f");
-            ImGui::SliderFloat(
-                "pitch##SweptSurfaceEndLine",
-                &end_pitch,
-                0.f,
-                2.f * 3.14159f,
-                "%.1f");
-            ImGui::SliderFloat("yaw##SweptSurfaceEndLine", &end_yaw, 0.f, 2.f * 3.14159f, "%.1f");
-
-            end_roll_pitch_yaw(0) = end_roll;
-            end_roll_pitch_yaw(1) = end_pitch;
-            end_roll_pitch_yaw(2) = end_yaw;
+            ImGui::Text("Scaling of Cutting Triangle");
+            ImGui::SliderFloat("sx", &sx, -5.f, 5.f, "%.1f");
+            ImGui::SliderFloat("sy", &sy, -5.f, 5.f, "%.1f");
+            ImGui::SliderFloat("sz", &sz, -5.f, 5.f, "%.1f");
         }
 
+        Eigen::AngleAxisd const roll_angle(static_cast<double>(roll), Eigen::Vector3d::UnitX());
+        Eigen::AngleAxisd const pitch_angle(static_cast<double>(pitch), Eigen::Vector3d::UnitY());
+        Eigen::AngleAxisd const yaw_angle(static_cast<double>(yaw), Eigen::Vector3d::UnitZ());
+        t(0u)   = tx;
+        t(1u)   = ty;
+        t(2u)   = tz;
+        S(0, 0) = sx;
+        S(1, 1) = sy;
+        S(2, 2) = sz;
+
+        Eigen::Quaterniond const q = roll_angle * yaw_angle * pitch_angle;
+        R                          = q.matrix();
+
         static bool is_cut{false};
-
-        // draw the cutting "scalpel"
-        Eigen::AngleAxisd const start_roll_angle(
-            static_cast<double>(start_roll_pitch_yaw(0)),
-            Eigen::Vector3d::UnitX());
-        Eigen::AngleAxisd const start_yaw_angle(
-            static_cast<double>(start_roll_pitch_yaw(1)),
-            Eigen::Vector3d::UnitY());
-        Eigen::AngleAxisd const start_pitch_angle(
-            static_cast<double>(start_roll_pitch_yaw(2)),
-            Eigen::Vector3d::UnitZ());
-
-        Eigen::AngleAxisd const end_roll_angle(
-            static_cast<double>(end_roll_pitch_yaw(0)),
-            Eigen::Vector3d::UnitX());
-        Eigen::AngleAxisd const end_yaw_angle(
-            static_cast<double>(end_roll_pitch_yaw(1)),
-            Eigen::Vector3d::UnitY());
-        Eigen::AngleAxisd const end_pitch_angle(
-            static_cast<double>(end_roll_pitch_yaw(2)),
-            Eigen::Vector3d::UnitZ());
-
-        Eigen::Quaterniond const start_q = start_roll_angle * start_yaw_angle * start_pitch_angle;
-        Eigen::Matrix3d const start_swept_surface_rotation = start_q.matrix();
-
-        start_line_segment_p1 = start_swept_surface_rotation * (origin + translation);
-        start_line_segment_p2 =
-            start_swept_surface_rotation * (origin + translation + t * z_unit_vector);
-
-        Eigen::Quaterniond const end_q = end_roll_angle * end_yaw_angle * end_pitch_angle;
-        Eigen::Matrix3d const end_swept_surface_rotation = end_q.matrix();
-
-        end_line_segment_p1 = start_line_segment_p1;
-        end_line_segment_p2 =
-            (end_swept_surface_rotation * (start_line_segment_p2.transpose() - translation) +
-                translation)
-                .transpose();
 
         // coordinate frame visualization
         viewer.data().add_edges(
@@ -291,21 +244,28 @@ int main(int argc, char** argv)
             0.5 * Eigen::RowVector3d{0., 0., 1.},
             blue);
 
+        CuttingTriangleV = (R * S * CuttingTriangleV.transpose()).transpose();
+        CuttingTriangleV.rowwise() += t;
+
+        start_line_segment_p1 = CuttingTriangleV.row(0u);
+        start_line_segment_p2 = CuttingTriangleV.row(2u);
+        end_line_segment_p1   = CuttingTriangleV.row(0u);
+        end_line_segment_p2   = CuttingTriangleV.row(1u);
+        viewer.data().add_edges(start_line_segment_p1, start_line_segment_p2, red);
+        viewer.data().add_edges(end_line_segment_p1, end_line_segment_p2, red);
+
+        // draw tetrahedron edge intersections with cutting swept surface
+        Eigen::Vector3d const swept_surface_triangle_a{start_line_segment_p1.transpose()};
+        Eigen::Vector3d const swept_surface_triangle_b{start_line_segment_p2.transpose()};
+        Eigen::Vector3d const swept_surface_triangle_c{end_line_segment_p2.transpose()};
+
+        viewer.data().add_points(start_line_segment_p1, red);
+        viewer.data().add_points(start_line_segment_p2, red);
+        viewer.data().add_points(end_line_segment_p1, red);
+        viewer.data().add_points(end_line_segment_p2, red);
+
         if (!is_cut)
         {
-            viewer.data().add_edges(start_line_segment_p1, start_line_segment_p2, red);
-            viewer.data().add_edges(end_line_segment_p1, end_line_segment_p2, red);
-
-            // draw tetrahedron edge intersections with cutting swept surface
-            Eigen::Vector3d const swept_surface_triangle_a{start_line_segment_p1.transpose()};
-            Eigen::Vector3d const swept_surface_triangle_b{start_line_segment_p2.transpose()};
-            Eigen::Vector3d const swept_surface_triangle_c{end_line_segment_p2.transpose()};
-
-            viewer.data().add_points(start_line_segment_p1, red);
-            viewer.data().add_points(start_line_segment_p2, red);
-            viewer.data().add_points(end_line_segment_p1, red);
-            viewer.data().add_points(end_line_segment_p2, red);
-
             display_tet_face_intersections(V, T, start_line_segment_p1, start_line_segment_p2);
             display_tet_face_intersections(V, T, end_line_segment_p1, end_line_segment_p2);
 
@@ -322,8 +282,12 @@ int main(int argc, char** argv)
             viewer.data().add_label(
                 start_line_segment_p2,
                 get_coordinate_string(start_line_segment_p2));
-            viewer.data().add_label(end_line_segment_p1, get_coordinate_string(end_line_segment_p1));
-            viewer.data().add_label(end_line_segment_p2, get_coordinate_string(end_line_segment_p2));
+            viewer.data().add_label(
+                end_line_segment_p1,
+                get_coordinate_string(end_line_segment_p1));
+            viewer.data().add_label(
+                end_line_segment_p2,
+                get_coordinate_string(end_line_segment_p2));
         }
 
         if (ImGui::Button("Cut", ImVec2((w - p) / 2.f, 0.f)))
@@ -343,6 +307,7 @@ int main(int argc, char** argv)
             F = F.rowwise().reverse().eval();
 
             std::cout << "Subdivided tetrahedral boundary facets:\n" << F << "\n";
+            is_cut = true;
 
             viewer.data().clear();
             viewer.data().set_mesh(V, F);
@@ -352,6 +317,7 @@ int main(int argc, char** argv)
         if (ImGui::Button("Reset", ImVec2((w - p) / 2.f, 0.f)))
         {
             reset_demo();
+            is_cut = false;
         }
 
         ImGui::End();
