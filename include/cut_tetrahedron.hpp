@@ -670,7 +670,7 @@ class tetrahedron_mesh_cutter_t
 
         TT.conservativeResize(TT.rows() + (new_tetrahedron_count - 1), Eigen::NoChange);
         TT.row(t1) = Eigen::RowVector4i{v1, v2, v3, v7};
-        TT.row(t2) = Eigen::RowVector4i{v1, v2, v5, v7};
+        TT.row(t2) = Eigen::RowVector4i{v1, v5, v2, v7};
         TT.row(t3) = Eigen::RowVector4i{v6, v5, v7, v2};
         TT.row(t4) = Eigen::RowVector4i{v5, v6, v7, v4};
     }
