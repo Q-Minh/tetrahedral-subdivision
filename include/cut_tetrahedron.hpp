@@ -106,8 +106,8 @@ class tetrahedron_mesh_cutter_t
         {
             auto const& pe1 = edge_intersection_points[e1];
             auto const& pe2 = edge_intersection_points[e2];
-            auto const& pe3 = edge_intersection_points[e4];
-            auto const& pe4 = edge_intersection_points[e6];
+            auto const& pe3 = edge_intersection_points[e6];
+            auto const& pe4 = edge_intersection_points[e4];
             subdivide_mesh_for_common_case_2(
                 TV,
                 TT,
@@ -120,13 +120,13 @@ class tetrahedron_mesh_cutter_t
         {
             auto const& pe1 = edge_intersection_points[e5];
             auto const& pe2 = edge_intersection_points[e1];
-            auto const& pe3 = edge_intersection_points[e6];
-            auto const& pe4 = edge_intersection_points[e3];
+            auto const& pe3 = edge_intersection_points[e3];
+            auto const& pe4 = edge_intersection_points[e6];
             subdivide_mesh_for_common_case_2(
                 TV,
                 TT,
                 tetrahedron,
-                {v4, v1, v3, v2},
+                {v2, v3, v1, v4},
                 {pe1, pe2, pe3, pe4});
             return true;
         }
@@ -134,8 +134,8 @@ class tetrahedron_mesh_cutter_t
         {
             auto const& pe1 = edge_intersection_points[e4];
             auto const& pe2 = edge_intersection_points[e3];
-            auto const& pe3 = edge_intersection_points[e5];
-            auto const& pe4 = edge_intersection_points[e2];
+            auto const& pe3 = edge_intersection_points[e2];
+            auto const& pe4 = edge_intersection_points[e5];
             subdivide_mesh_for_common_case_2(
                 TV,
                 TT,
@@ -708,12 +708,12 @@ class tetrahedron_mesh_cutter_t
         int const t6                        = TT.rows() + 4;
 
         TT.conservativeResize(TT.rows() + (new_tetrahedron_count - 1), Eigen::NoChange);
-        TT.row(t1) = Eigen::RowVector4i{v5, v7, v6, v4};
-        TT.row(t2) = Eigen::RowVector4i{v6, v7, v8, v4};
-        TT.row(t3) = Eigen::RowVector4i{v6, v8, v3, v4};
-        TT.row(t4) = Eigen::RowVector4i{v5, v6, v7, v1};
-        TT.row(t5) = Eigen::RowVector4i{v1, v2, v6, v7};
-        TT.row(t6) = Eigen::RowVector4i{v2, v8, v6, v7};
+        TT.row(t1) = Eigen::RowVector4i{v5, v8, v6, v4};
+        TT.row(t2) = Eigen::RowVector4i{v6, v8, v7, v4};
+        TT.row(t3) = Eigen::RowVector4i{v6, v7, v3, v4};
+        TT.row(t4) = Eigen::RowVector4i{v5, v6, v8, v1};
+        TT.row(t5) = Eigen::RowVector4i{v1, v2, v6, v8};
+        TT.row(t6) = Eigen::RowVector4i{v2, v7, v6, v8};
     }
 
     void subdivide_mesh_for_common_case_3(
