@@ -252,8 +252,8 @@ class tetrahedron_mesh_cutter_t
 
         if (edge_intersection_mask == case_4_12)
         {
-            auto const& pe1 = edge_intersection_points[e4];
-            auto const& pe2 = edge_intersection_points[e5];
+            auto const& pe1 = edge_intersection_points[e1];
+            auto const& pe2 = edge_intersection_points[e2];
             auto const& pf1 = face_intersection_points[f2];
             auto const& pf2 = face_intersection_points[f1];
             subdivide_mesh_for_common_case_4(
@@ -267,8 +267,8 @@ class tetrahedron_mesh_cutter_t
         }
         if (edge_intersection_mask == case_4_13)
         {
-            auto const& pe1 = edge_intersection_points[e1];
-            auto const& pe2 = edge_intersection_points[e3];
+            auto const& pe1 = edge_intersection_points[e3];
+            auto const& pe2 = edge_intersection_points[e1];
             auto const& pf1 = face_intersection_points[f1];
             auto const& pf2 = face_intersection_points[f3];
             subdivide_mesh_for_common_case_4(
@@ -297,8 +297,8 @@ class tetrahedron_mesh_cutter_t
         }
         if (edge_intersection_mask == case_4_15)
         {
-            auto const& pe1 = edge_intersection_points[e1];
-            auto const& pe2 = edge_intersection_points[e5];
+            auto const& pe1 = edge_intersection_points[e5];
+            auto const& pe2 = edge_intersection_points[e1];
             auto const& pf1 = face_intersection_points[f4];
             auto const& pf2 = face_intersection_points[f2];
             subdivide_mesh_for_common_case_4(
@@ -342,8 +342,8 @@ class tetrahedron_mesh_cutter_t
         }
         if (edge_intersection_mask == case_4_26)
         {
-            auto const& pe1 = edge_intersection_points[e2];
-            auto const& pe2 = edge_intersection_points[e6];
+            auto const& pe1 = edge_intersection_points[e6];
+            auto const& pe2 = edge_intersection_points[e2];
             auto const& pf1 = face_intersection_points[f4];
             auto const& pf2 = face_intersection_points[f3];
             subdivide_mesh_for_common_case_4(
@@ -357,8 +357,8 @@ class tetrahedron_mesh_cutter_t
         }
         if (edge_intersection_mask == case_4_34)
         {
-            auto const& pe1 = edge_intersection_points[e3];
-            auto const& pe2 = edge_intersection_points[e4];
+            auto const& pe1 = edge_intersection_points[e4];
+            auto const& pe2 = edge_intersection_points[e3];
             auto const& pf1 = face_intersection_points[f4];
             auto const& pf2 = face_intersection_points[f1];
             subdivide_mesh_for_common_case_4(
@@ -402,8 +402,8 @@ class tetrahedron_mesh_cutter_t
         }
         if (edge_intersection_mask == case_4_46)
         {
-            auto const& pe1 = edge_intersection_points[e4];
-            auto const& pe2 = edge_intersection_points[e6];
+            auto const& pe1 = edge_intersection_points[e6];
+            auto const& pe2 = edge_intersection_points[e4];
             auto const& pf1 = face_intersection_points[f1];
             auto const& pf2 = face_intersection_points[f2];
             subdivide_mesh_for_common_case_4(
@@ -653,11 +653,6 @@ class tetrahedron_mesh_cutter_t
         int const v3 = TT.row(tetrahedron)(vertex_ordering[2]);
         int const v4 = TT.row(tetrahedron)(vertex_ordering[3]);
 
-        Eigen::RowVector3d const& p1 = TV.row(v1);
-        Eigen::RowVector3d const& p2 = TV.row(v2);
-        Eigen::RowVector3d const& p3 = TV.row(v3);
-        Eigen::RowVector3d const& p4 = TV.row(v4);
-
         int const v5 = TV.rows();
         int const v6 = v5 + 1u;
         int const v7 = v5 + 2u;
@@ -691,11 +686,6 @@ class tetrahedron_mesh_cutter_t
         int const v2 = TT.row(tetrahedron)(vertex_ordering[1]);
         int const v3 = TT.row(tetrahedron)(vertex_ordering[2]);
         int const v4 = TT.row(tetrahedron)(vertex_ordering[3]);
-
-        Eigen::RowVector3d const& p1 = TV.row(v1);
-        Eigen::RowVector3d const& p2 = TV.row(v2);
-        Eigen::RowVector3d const& p3 = TV.row(v3);
-        Eigen::RowVector3d const& p4 = TV.row(v4);
 
         int constexpr new_vertex_count = 4u;
         int const v5                   = TV.rows();
@@ -779,11 +769,6 @@ class tetrahedron_mesh_cutter_t
         int const v3 = TT.row(tetrahedron)(vertex_ordering[2]);
         int const v4 = TT.row(tetrahedron)(vertex_ordering[3]);
 
-        Eigen::RowVector3d const& p1 = TV.row(v1);
-        Eigen::RowVector3d const& p2 = TV.row(v2);
-        Eigen::RowVector3d const& p3 = TV.row(v3);
-        Eigen::RowVector3d const& p4 = TV.row(v4);
-
         int constexpr new_vertex_count = 4u;
         int const v5                   = TV.rows();
         int const v6                   = v5 + 1u;
@@ -829,11 +814,6 @@ class tetrahedron_mesh_cutter_t
         int const v2 = TT.row(tetrahedron)(vertex_ordering[1]);
         int const v3 = TT.row(tetrahedron)(vertex_ordering[2]);
         int const v4 = TT.row(tetrahedron)(vertex_ordering[3]);
-
-        Eigen::RowVector3d const& p1 = TV.row(v1);
-        Eigen::RowVector3d const& p2 = TV.row(v2);
-        Eigen::RowVector3d const& p3 = TV.row(v3);
-        Eigen::RowVector3d const& p4 = TV.row(v4);
 
         int constexpr new_vertex_count = 5u;
         int const v5                   = TV.rows();
