@@ -21,22 +21,31 @@ int main(int argc, char** argv)
     Eigen::MatrixXi T(1u, 4u);
     Eigen::MatrixXi F(4u, 3u);
 
-    auto const reset_demo = [&]() {
-        V = Eigen::MatrixXd(4u, 3u);
-        T = Eigen::MatrixXi(1u, 4u);
-        F = Eigen::MatrixXi(4u, 3u);
+    auto const get_single_tetrahedron = []() {
+        Eigen::MatrixXd V(4u, 3u);
+        Eigen::MatrixXi T(1u, 4u);
 
         // clang-format off
-	    V.row(0u) = Eigen::RowVector3d{0., 0., -1.};
-        V.row(1u) = Eigen::RowVector3d{1., 0.,  1.};
+        V.row(0u) = Eigen::RowVector3d{0., 0., -1.};
+        V.row(1u) = Eigen::RowVector3d{1., 0., 1.};
         V.row(2u) = Eigen::RowVector3d{2., 0., -1.};
-        V.row(3u) = Eigen::RowVector3d{1., 1.5,  0.};
+        V.row(3u) = Eigen::RowVector3d{1., 1.5, 0.};
 
         T.row(0u) = Eigen::RowVector4i{0u, 1u, 2u, 3u};
+        // clang-format on
+
+        return std::make_pair(V, T);
+    };
+
+    auto const reset_demo = [&]() {
+        auto pair = get_single_tetrahedron();
+        V         = pair.first;
+        T         = pair.second;
+
+        F = Eigen::MatrixXi(4u, 3u);
 
         igl::boundary_facets(T, F);
         F = F.rowwise().reverse().eval();
-        // clang-format on
 
         viewer.data().clear();
         viewer.data().show_labels = true;
@@ -196,6 +205,7 @@ int main(int argc, char** argv)
         static float roll = 0.f, pitch = 0.f, yaw = 0.f;
         static float tx = 0.f, ty = 0.f, tz = 0.f;
         static float sx = 1.f, sy = 1.f, sz = 1.f;
+        static float bt = 0.f;
 
         if (ImGui::CollapsingHeader("Cutting Swept Surface", ImGuiTreeNodeFlags_DefaultOpen))
         {
@@ -213,6 +223,13 @@ int main(int argc, char** argv)
             ImGui::SliderFloat("sx", &sx, -5.f, 5.f, "%.1f");
             ImGui::SliderFloat("sy", &sy, -5.f, 5.f, "%.1f");
             ImGui::SliderFloat("sz", &sz, -5.f, 5.f, "%.1f");
+        }
+        if (ImGui::CollapsingHeader("Tetrahedra expansion", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::Text(
+                "Translate tetrahedra towards\nthe outside of the barycenter\nof the initial "
+                "tetrahedron");
+            ImGui::SliderFloat("t##TetExpansion", &bt, 0.f, 1.f);
         }
 
         Eigen::AngleAxisd const roll_angle(static_cast<double>(roll), Eigen::Vector3d::UnitX());
@@ -268,6 +285,7 @@ int main(int argc, char** argv)
         {
             display_tet_face_intersections(V, T, start_line_segment_p1, start_line_segment_p2);
             display_tet_face_intersections(V, T, end_line_segment_p1, end_line_segment_p2);
+            display_tet_face_intersections(V, T, start_line_segment_p2, end_line_segment_p2);
 
             diplay_tet_edge_intersections(
                 V,
@@ -288,6 +306,52 @@ int main(int argc, char** argv)
             viewer.data().add_label(
                 end_line_segment_p2,
                 get_coordinate_string(end_line_segment_p2));
+        }
+        else
+        {
+            Eigen::MatrixXi OutF(T.rows() * 4, 3u);
+            Eigen::MatrixXd BC;
+            igl::barycenter(V, T, BC);
+
+            Eigen::MatrixXd OutV(T.rows() * T.cols(), 3u);
+            Eigen::MatrixXd OutT(T.rows(), 4u);
+            for (int i = 0; i < T.rows(); ++i)
+            {
+                int const offset     = i * 4;
+                OutV.row(offset)      = V.row(T(i, 0));
+                OutV.row(offset + 1) = V.row(T(i, 1));
+                OutV.row(offset + 2) = V.row(T(i, 2));
+                OutV.row(offset + 3) = V.row(T(i, 3));
+
+                OutT(i, 0) = offset;
+                OutT(i, 1) = offset + 1;
+                OutT(i, 2) = offset + 2;
+                OutT(i, 3) = offset + 3;
+
+                OutF.row(offset + 0) = Eigen::RowVector3i{offset + 0, offset + 1, offset + 3};
+                OutF.row(offset + 1) = Eigen::RowVector3i{offset + 1, offset + 2, offset + 3};
+                OutF.row(offset + 2) = Eigen::RowVector3i{offset + 2, offset + 0, offset + 3};
+                OutF.row(offset + 3) = Eigen::RowVector3i{offset + 0, offset + 2, offset + 1};
+            }
+            Eigen::MatrixXd CenterBC;
+            auto pair = get_single_tetrahedron();
+            igl::barycenter(pair.first, pair.second, CenterBC);
+            for (int i = 0; i < OutT.rows(); ++i)
+            {
+                Eigen::RowVector3d const bc = BC.row(i);
+                Eigen::RowVector3d const c  = CenterBC.row(0u);
+                Eigen::RowVector3d const direction = (bc - c).normalized();
+
+                for (int j = 0; j < OutT.cols(); ++j)
+                {
+                    OutV.row(OutT(i, j)) += bt * direction;
+                }
+            }
+
+            viewer.data().clear();
+            viewer.data().set_mesh(OutV, OutF);
+            viewer.data().set_face_based(true);
+            viewer.data().show_lines = true;
         }
 
         if (ImGui::Button("Cut", ImVec2((w - p) / 2.f, 0.f)))

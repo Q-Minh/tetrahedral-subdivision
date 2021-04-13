@@ -1067,12 +1067,63 @@ std::pair<std::byte, std::array<Eigen::Vector3d, 4u>> get_face_intersections(
         }
     }
 
-    if ((start_line_mask & end_line_mask) != std::byte{0b00000000})
+    std::byte invisible_line_mask{0b00000000};
+    // intersect tet faces with line q1-q2
+    {
+        auto const [f1_intersected, f1_intersection] = geometry::triangle_line_intersection_two_way(
+            vertices[TF(f1, 0)],
+            vertices[TF(f1, 1)],
+            vertices[TF(f1, 2)],
+            {q1, q2});
+
+        auto const [f2_intersected, f2_intersection] = geometry::triangle_line_intersection_two_way(
+            vertices[TF(f2, 0)],
+            vertices[TF(f2, 1)],
+            vertices[TF(f2, 2)],
+            {q1, q2});
+
+        auto const [f3_intersected, f3_intersection] = geometry::triangle_line_intersection_two_way(
+            vertices[TF(f3, 0)],
+            vertices[TF(f3, 1)],
+            vertices[TF(f3, 2)],
+            {q1, q2});
+
+        auto const [f4_intersected, f4_intersection] = geometry::triangle_line_intersection_two_way(
+            vertices[TF(f4, 0)],
+            vertices[TF(f4, 1)],
+            vertices[TF(f4, 2)],
+            {q1, q2});
+
+        if (f1_intersected)
+        {
+            invisible_line_mask |= std::byte{0b00000001};
+            face_intersections[0] = f1_intersection;
+        }
+        if (f2_intersected)
+        {
+            invisible_line_mask |= std::byte{0b00000010};
+            face_intersections[1] = f2_intersection;
+        }
+        if (f3_intersected)
+        {
+            invisible_line_mask |= std::byte{0b00000100};
+            face_intersections[2] = f3_intersection;
+        }
+        if (f4_intersected)
+        {
+            invisible_line_mask |= std::byte{0b00001000};
+            face_intersections[3] = f4_intersection;
+        }
+    }
+
+    if ((start_line_mask & end_line_mask) != std::byte{0b00000000} ||
+        (start_line_mask & invisible_line_mask) != std::byte{0b00000000} ||
+        (end_line_mask & invisible_line_mask) != std::byte{0b00000000})
     {
         return {std::byte{0b00000000}, face_intersections};
     }
 
-    std::byte const mask = start_line_mask | end_line_mask;
+    std::byte const mask = start_line_mask | end_line_mask | invisible_line_mask;
     return {mask, face_intersections};
 }
 
